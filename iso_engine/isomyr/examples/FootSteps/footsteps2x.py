@@ -1,5 +1,5 @@
 import os
-
+import pygame
 from pygame import (K_DOWN, K_LEFT, K_RETURN,
                     K_RIGHT, K_SPACE, K_UP, K_l, K_x, K_z)
 
@@ -11,12 +11,26 @@ from isomyr.objects.portal import Portal
 from isomyr.skin import AnimatedSkin, DirectedAnimatedSkin, Skin
 from isomyr.sound import CyclicSound
 from isomyr.util.loaders import ImageLoader, SoundLoader
-from isomyr.thing import MovableThing, PhysicalThing, PortableThing
+from isomyr.thing import MovableThing, PhysicalThing, PortableThing, FallableThing
 from isomyr.world.calendar import SPEED_04, TimeChange
 from isomyr.world.world import worldFactory
 
+from custom_characters import SuperJumpingPlayer, MinutesChangeSubscriber, AutoMovableThing
 
 dirname = os.path.dirname(__file__)
+
+
+class InfoEvent(HourChangeEvent):
+    """
+    A custom event class for the grandfather clock in this example.
+    """
+
+    player = None
+    def getMessage(self, hour):
+        count = hour % 12
+
+        info = "%s) Posizione del player %s" % (count,str(self.player.location))
+        return info
 
 
 # Set the custom keys for the game.
@@ -39,6 +53,14 @@ imageLoader = ImageLoader(basedir=dirname, transparency=(255, 255, 255))
 soundLoader = SoundLoader(basedir=dirname)
 
 
+
+def play_bg_music(file = 'bg_music.mp3'):
+    #pygame.init()
+    pygame.mixer.init()
+    pygame.mixer.music.load(file)
+    pygame.mixer.music.play()
+    #pygame.event.wait()
+
 def setupWorld():
     """
     Create the world, the scenes that can be visited, the objects in the
@@ -47,15 +69,20 @@ def setupWorld():
     # Create the world.
     world = worldFactory(name="Clock World")
 
+    play_bg_music()
     # Create the scene.
     livingRoom = world.addScene("The Living Room")
     livingRoom.setSkin(
-        Skin(imageLoader.load("livingroom.png")))
+        Skin(imageLoader.load("livingroom2x.png")))
 
     # Create the player and set his animated skin.
-    ianCurtis = livingRoom.addPlayer(
-        name="Ian Curtis", location=[90, 90, 100], size=[14, 14, 50],
-        velocityModifier=1)
+
+    myPlayer = SuperJumpingPlayer(jump_height=10, name="Ian Curtis", location=[0, 0, 0], size=[14, 14, 50],
+        velocityModifier=5)
+
+    InfoEvent.player = myPlayer
+
+    ianCurtis = livingRoom.addPlayer(myPlayer)
     southFacing = imageLoader.load([
         "player/ian_curtis1.png", "player/ian_curtis2.png",
         "player/ian_curtis3.png"])
@@ -72,20 +99,26 @@ def setupWorld():
     # Put in ground and walls.
     ground = PhysicalThing(
         "ground", [-1000, -1000, -100], [2000, 2000, 100])
-    wall0 = PhysicalThing("wall", [180, 0, -20], [20, 180, 100])
-    wall1 = PhysicalThing("wall", [0, 180, -20], [180, 20, 100])
+    wall0 = PhysicalThing("wall", [290, 390, 0], [356, 14, 50])
+
+
+    wall1 = PhysicalThing("wall", [0, 350, -20], [400, 20, 100])
+    #wall1.setSkin(Skin(imageLoader.load(["brick.png"])))
     wall2 = PhysicalThing("wall", [0, -20, -20], [180, 20, 100])
     wall3 = PhysicalThing("wall", [-20, 0, -20], [20, 180, 100])
 
-    sofa = PhysicalThing(
-        name="sofa", location=[20, 90, 0], size=[39, 66, 37], fixed=False)
+    sofa = AutoMovableThing(
+        name="sofa", location=[390,100, 0], size=[39, 66, 30], fixed=False)
     sofa.setSkin(
         Skin(imageLoader.load(["sofa.png"])))
 
     # Populate the living room.
+    #livingRoom.addObjects([
+    #    ground, wall0, wall1, wall2, wall3, sofa,
+    #   ])
+
     livingRoom.addObjects([
-        ground, wall0, wall1, wall2, wall3, sofa,
-        ])
+        ground,  wall1, sofa])
 
     return world
 
@@ -94,12 +127,23 @@ def run():
     # Create an isomyr engine and start it.
     titlebar = os.path.join(dirname, "titlebar.png")
     engine = Engine(keys=custom_keys, gameSpeed=SPEED_04,
-                    displayOffset=[200, 172], sceneSize=(400, 600),
-                    titleFile=titlebar, textAreaPosition=(10, 380),
-                    textAreaSize=(380, 230))
-    engine.setStartingWorld(setupWorld(), welcomeMessage="Benvenuti al nostro strano gioco!")
+                    displayOffset=[400, 344], sceneSize=(800, 1200),
+                    titleFile=titlebar, textAreaPosition=(10, 800),
+                    textAreaSize=(800, 400))
+
+    world = setupWorld()
+    engine.setStartingWorld(world, welcomeMessage="Benvenuti al nostro strano gioco!")
     time = engine.world.getWorldTime()
+
+    time.setTimeEvent(TimeChange.hour, InfoEvent, MinutesChangeSubscriber())
+
+    lr = world.getScene("The Living Room")
+    sofa = lr.getObject("sofa")
+
+
     engine.run()
+
+
 
 
 if __name__ == "__main__":
