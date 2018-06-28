@@ -4,6 +4,8 @@ from isomyr.objects.character import Player
 from isomyr.handler import TimeChangeSubscriber
 from isomyr.thing import FallableThing
 
+
+
 class AutoMovableThing(FallableThing):
 
     def respond(self):
@@ -13,6 +15,21 @@ class AutoMovableThing(FallableThing):
         else:
             self.velocity[0] = -1
         super(AutoMovableThing, self).respond()
+
+
+class ChattingAutoMovableThing(AutoMovableThing):
+    def __init__(self, *args, **kwds):
+        super(ChattingAutoMovableThing, self).__init__(*args, **kwds)
+        self.view = None
+
+    def setChatView(self,view):
+        self.view = view
+
+    def eventCollision(self, otherObject, impactSide):
+        if self.view!=None:
+            if isinstance(otherObject, SuperJumpingPlayer):
+                self.view.updateTextArea("Spostati, maledetto di un divano!!!")
+
 
 class SuperJumpingPlayer(Player):
 

@@ -15,7 +15,7 @@ from isomyr.thing import MovableThing, PhysicalThing, PortableThing, FallableThi
 from isomyr.world.calendar import SPEED_04, TimeChange
 from isomyr.world.world import worldFactory
 
-from custom_characters import SuperJumpingPlayer, MinutesChangeSubscriber, AutoMovableThing
+from custom_characters import SuperJumpingPlayer, MinutesChangeSubscriber, AutoMovableThing , ChattingAutoMovableThing
 
 dirname = os.path.dirname(__file__)
 
@@ -107,7 +107,7 @@ def setupWorld():
     wall2 = PhysicalThing("wall", [0, -20, -20], [180, 20, 100])
     wall3 = PhysicalThing("wall", [-20, 0, -20], [20, 180, 100])
 
-    sofa = AutoMovableThing(
+    sofa = ChattingAutoMovableThing(
         name="sofa", location=[390,100, 0], size=[39, 66, 30], fixed=False)
     sofa.setSkin(
         Skin(imageLoader.load(["sofa.png"])))
@@ -139,7 +139,9 @@ def run():
 
     lr = world.getScene("The Living Room")
     sofa = lr.getObject("sofa")
-
+    if  isinstance(sofa,ChattingAutoMovableThing):
+        print "istanza"
+        sofa.setChatView(engine.view)
 
     engine.run()
 
