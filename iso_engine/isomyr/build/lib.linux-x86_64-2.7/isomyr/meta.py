@@ -1,8 +1,0 @@
-display_name = "Isomyr"
-library_name = "isomyr"
-version = "0.1"
-author = "Duncan McGreggor"
-author_email = "oubiwann@adytum.us"
-license = "BSD, GPL"
-url = "http://launchpad.net/isomyr"
-description = "A Python Isometric Game Engine."

@@ -1,6 +1,0 @@
-~~~~~~
-Isomyr
-~~~~~~
-
-.. contents::
-   :depth: 1

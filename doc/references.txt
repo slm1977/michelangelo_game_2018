@@ -1,2 +1,0 @@
-ISOMETRIC TUTORIALS
-https://gamedevelopment.tutsplus.com/tutorials/creating-isometric-worlds-a-primer-for-game-developers--gamedev-6511
